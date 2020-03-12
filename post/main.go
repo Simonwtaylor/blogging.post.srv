@@ -23,7 +23,7 @@ func main() {
 	// db := config.NewGormDatabase()
 
 	// Register Handler
-	post.RegisterPostHandler(service.Server(), new(handler.Post))
+	post.RegisterPostServiceHandler(service.Server(), new(handler.Post))
 
 	// Register Struct as Subscriber
 	micro.RegisterSubscriber("go.micro.srv.post", service.Server(), new(subscriber.Post))

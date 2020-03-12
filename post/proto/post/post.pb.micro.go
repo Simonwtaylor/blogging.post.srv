@@ -31,12 +31,14 @@ var _ context.Context
 var _ client.Option
 var _ server.Option
 
-// Client API for Post service
+// Client API for PostService service
 
 type PostService interface {
 	Call(ctx context.Context, in *Request, opts ...client.CallOption) (*Response, error)
-	Stream(ctx context.Context, in *StreamingRequest, opts ...client.CallOption) (Post_StreamService, error)
-	PingPong(ctx context.Context, opts ...client.CallOption) (Post_PingPongService, error)
+	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...client.CallOption) (*CreateUserResponse, error)
+	GetAllUsers(ctx context.Context, in *GetAllUsersRequest, opts ...client.CallOption) (*GetAllUsersResponse, error)
+	CreatePost(ctx context.Context, in *CreatePostRequest, opts ...client.CallOption) (*CreatePostResponse, error)
+	GetAllPosts(ctx context.Context, in *GetAllPostsRequest, opts ...client.CallOption) (*GetAllPostsResponse, error)
 }
 
 type postService struct {
@@ -52,7 +54,7 @@ func NewPostService(name string, c client.Client) PostService {
 }
 
 func (c *postService) Call(ctx context.Context, in *Request, opts ...client.CallOption) (*Response, error) {
-	req := c.c.NewRequest(c.name, "Post.Call", in)
+	req := c.c.NewRequest(c.name, "PostService.Call", in)
 	out := new(Response)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
@@ -61,216 +63,91 @@ func (c *postService) Call(ctx context.Context, in *Request, opts ...client.Call
 	return out, nil
 }
 
-func (c *postService) Stream(ctx context.Context, in *StreamingRequest, opts ...client.CallOption) (Post_StreamService, error) {
-	req := c.c.NewRequest(c.name, "Post.Stream", &StreamingRequest{})
-	stream, err := c.c.Stream(ctx, req, opts...)
+func (c *postService) CreateUser(ctx context.Context, in *CreateUserRequest, opts ...client.CallOption) (*CreateUserResponse, error) {
+	req := c.c.NewRequest(c.name, "PostService.CreateUser", in)
+	out := new(CreateUserResponse)
+	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	if err := stream.Send(in); err != nil {
-		return nil, err
-	}
-	return &postServiceStream{stream}, nil
+	return out, nil
 }
 
-type Post_StreamService interface {
-	Context() context.Context
-	SendMsg(interface{}) error
-	RecvMsg(interface{}) error
-	Close() error
-	Recv() (*StreamingResponse, error)
-}
-
-type postServiceStream struct {
-	stream client.Stream
-}
-
-func (x *postServiceStream) Close() error {
-	return x.stream.Close()
-}
-
-func (x *postServiceStream) Context() context.Context {
-	return x.stream.Context()
-}
-
-func (x *postServiceStream) SendMsg(m interface{}) error {
-	return x.stream.Send(m)
-}
-
-func (x *postServiceStream) RecvMsg(m interface{}) error {
-	return x.stream.Recv(m)
-}
-
-func (x *postServiceStream) Recv() (*StreamingResponse, error) {
-	m := new(StreamingResponse)
-	err := x.stream.Recv(m)
+func (c *postService) GetAllUsers(ctx context.Context, in *GetAllUsersRequest, opts ...client.CallOption) (*GetAllUsersResponse, error) {
+	req := c.c.NewRequest(c.name, "PostService.GetAllUsers", in)
+	out := new(GetAllUsersResponse)
+	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	return m, nil
+	return out, nil
 }
 
-func (c *postService) PingPong(ctx context.Context, opts ...client.CallOption) (Post_PingPongService, error) {
-	req := c.c.NewRequest(c.name, "Post.PingPong", &Ping{})
-	stream, err := c.c.Stream(ctx, req, opts...)
+func (c *postService) CreatePost(ctx context.Context, in *CreatePostRequest, opts ...client.CallOption) (*CreatePostResponse, error) {
+	req := c.c.NewRequest(c.name, "PostService.CreatePost", in)
+	out := new(CreatePostResponse)
+	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	return &postServicePingPong{stream}, nil
+	return out, nil
 }
 
-type Post_PingPongService interface {
-	Context() context.Context
-	SendMsg(interface{}) error
-	RecvMsg(interface{}) error
-	Close() error
-	Send(*Ping) error
-	Recv() (*Pong, error)
-}
-
-type postServicePingPong struct {
-	stream client.Stream
-}
-
-func (x *postServicePingPong) Close() error {
-	return x.stream.Close()
-}
-
-func (x *postServicePingPong) Context() context.Context {
-	return x.stream.Context()
-}
-
-func (x *postServicePingPong) SendMsg(m interface{}) error {
-	return x.stream.Send(m)
-}
-
-func (x *postServicePingPong) RecvMsg(m interface{}) error {
-	return x.stream.Recv(m)
-}
-
-func (x *postServicePingPong) Send(m *Ping) error {
-	return x.stream.Send(m)
-}
-
-func (x *postServicePingPong) Recv() (*Pong, error) {
-	m := new(Pong)
-	err := x.stream.Recv(m)
+func (c *postService) GetAllPosts(ctx context.Context, in *GetAllPostsRequest, opts ...client.CallOption) (*GetAllPostsResponse, error) {
+	req := c.c.NewRequest(c.name, "PostService.GetAllPosts", in)
+	out := new(GetAllPostsResponse)
+	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	return m, nil
+	return out, nil
 }
 
-// Server API for Post service
+// Server API for PostService service
 
-type PostHandler interface {
+type PostServiceHandler interface {
 	Call(context.Context, *Request, *Response) error
-	Stream(context.Context, *StreamingRequest, Post_StreamStream) error
-	PingPong(context.Context, Post_PingPongStream) error
+	CreateUser(context.Context, *CreateUserRequest, *CreateUserResponse) error
+	GetAllUsers(context.Context, *GetAllUsersRequest, *GetAllUsersResponse) error
+	CreatePost(context.Context, *CreatePostRequest, *CreatePostResponse) error
+	GetAllPosts(context.Context, *GetAllPostsRequest, *GetAllPostsResponse) error
 }
 
-func RegisterPostHandler(s server.Server, hdlr PostHandler, opts ...server.HandlerOption) error {
-	type post interface {
+func RegisterPostServiceHandler(s server.Server, hdlr PostServiceHandler, opts ...server.HandlerOption) error {
+	type postService interface {
 		Call(ctx context.Context, in *Request, out *Response) error
-		Stream(ctx context.Context, stream server.Stream) error
-		PingPong(ctx context.Context, stream server.Stream) error
+		CreateUser(ctx context.Context, in *CreateUserRequest, out *CreateUserResponse) error
+		GetAllUsers(ctx context.Context, in *GetAllUsersRequest, out *GetAllUsersResponse) error
+		CreatePost(ctx context.Context, in *CreatePostRequest, out *CreatePostResponse) error
+		GetAllPosts(ctx context.Context, in *GetAllPostsRequest, out *GetAllPostsResponse) error
 	}
-	type Post struct {
-		post
+	type PostService struct {
+		postService
 	}
-	h := &postHandler{hdlr}
-	return s.Handle(s.NewHandler(&Post{h}, opts...))
+	h := &postServiceHandler{hdlr}
+	return s.Handle(s.NewHandler(&PostService{h}, opts...))
 }
 
-type postHandler struct {
-	PostHandler
+type postServiceHandler struct {
+	PostServiceHandler
 }
 
-func (h *postHandler) Call(ctx context.Context, in *Request, out *Response) error {
-	return h.PostHandler.Call(ctx, in, out)
+func (h *postServiceHandler) Call(ctx context.Context, in *Request, out *Response) error {
+	return h.PostServiceHandler.Call(ctx, in, out)
 }
 
-func (h *postHandler) Stream(ctx context.Context, stream server.Stream) error {
-	m := new(StreamingRequest)
-	if err := stream.Recv(m); err != nil {
-		return err
-	}
-	return h.PostHandler.Stream(ctx, m, &postStreamStream{stream})
+func (h *postServiceHandler) CreateUser(ctx context.Context, in *CreateUserRequest, out *CreateUserResponse) error {
+	return h.PostServiceHandler.CreateUser(ctx, in, out)
 }
 
-type Post_StreamStream interface {
-	Context() context.Context
-	SendMsg(interface{}) error
-	RecvMsg(interface{}) error
-	Close() error
-	Send(*StreamingResponse) error
+func (h *postServiceHandler) GetAllUsers(ctx context.Context, in *GetAllUsersRequest, out *GetAllUsersResponse) error {
+	return h.PostServiceHandler.GetAllUsers(ctx, in, out)
 }
 
-type postStreamStream struct {
-	stream server.Stream
+func (h *postServiceHandler) CreatePost(ctx context.Context, in *CreatePostRequest, out *CreatePostResponse) error {
+	return h.PostServiceHandler.CreatePost(ctx, in, out)
 }
 
-func (x *postStreamStream) Close() error {
-	return x.stream.Close()
-}
-
-func (x *postStreamStream) Context() context.Context {
-	return x.stream.Context()
-}
-
-func (x *postStreamStream) SendMsg(m interface{}) error {
-	return x.stream.Send(m)
-}
-
-func (x *postStreamStream) RecvMsg(m interface{}) error {
-	return x.stream.Recv(m)
-}
-
-func (x *postStreamStream) Send(m *StreamingResponse) error {
-	return x.stream.Send(m)
-}
-
-func (h *postHandler) PingPong(ctx context.Context, stream server.Stream) error {
-	return h.PostHandler.PingPong(ctx, &postPingPongStream{stream})
-}
-
-type Post_PingPongStream interface {
-	Context() context.Context
-	SendMsg(interface{}) error
-	RecvMsg(interface{}) error
-	Close() error
-	Send(*Pong) error
-	Recv() (*Ping, error)
-}
-
-type postPingPongStream struct {
-	stream server.Stream
-}
-
-func (x *postPingPongStream) Close() error {
-	return x.stream.Close()
-}
-
-func (x *postPingPongStream) Context() context.Context {
-	return x.stream.Context()
-}
-
-func (x *postPingPongStream) SendMsg(m interface{}) error {
-	return x.stream.Send(m)
-}
-
-func (x *postPingPongStream) RecvMsg(m interface{}) error {
-	return x.stream.Recv(m)
-}
-
-func (x *postPingPongStream) Send(m *Pong) error {
-	return x.stream.Send(m)
-}
-
-func (x *postPingPongStream) Recv() (*Ping, error) {
-	m := new(Ping)
-	if err := x.stream.Recv(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+func (h *postServiceHandler) GetAllPosts(ctx context.Context, in *GetAllPostsRequest, out *GetAllPostsResponse) error {
+	return h.PostServiceHandler.GetAllPosts(ctx, in, out)
 }

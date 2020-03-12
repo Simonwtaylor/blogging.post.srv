@@ -2,14 +2,12 @@ syntax = "proto3";
 
 package go.micro.srv.post;
 
-service Post {
+service PostService {
 	rpc Call(Request) returns (Response) {}
-	rpc Stream(StreamingRequest) returns (stream StreamingResponse) {}
-	rpc PingPong(stream Ping) returns (stream Pong) {}
-}
-
-message Message {
-	string say = 1;
+	rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
+	rpc GetAllUsers(GetAllUsersRequest) returns (GetAllUsersResponse) {}
+	rpc CreatePost(CreatePostRequest) returns (CreatePostResponse) {}
+	rpc GetAllPosts(GetAllPostsRequest) returns (GetAllPostsResponse) {}
 }
 
 message Request {
@@ -20,18 +18,72 @@ message Response {
 	string msg = 1;
 }
 
-message StreamingRequest {
-	int64 count = 1;
+message UserInput {
+	string username = 1;
+	string password = 2;
+	string email = 3;
+	bool active = 4;
 }
 
-message StreamingResponse {
-	int64 count = 1;
+message User {
+	string ID = 1;
+	string username = 2;
+	string password = 3;
+	string email = 4;
+	bool active = 5;
+	int32 createdAt = 6;
+	int32 updatedAt = 7;
 }
 
-message Ping {
-	int64 stroke = 1;
+message Post {
+	string ID = 1;
+	string content = 2;
+	User user = 3;
+	int32 createdAt = 4;
+	int32 updatedAt = 5;
 }
 
-message Pong {
-	int64 stroke = 1;
+message Meta {
+	int32 cursor = 1;
+	int32 totalItems = 2;
+}
+
+message PaginatedQuery {
+	int32 cursor = 1;
+	int32 pageSize = 2;
+}
+
+message CreateUserRequest {
+	UserInput user = 1;
+}
+
+message CreateUserResponse {
+	User user = 1;
+}
+
+message GetAllUsersRequest {
+	PaginatedQuery query = 1;
+}
+
+message GetAllUsersResponse {
+	repeated User users = 1;
+	Meta meta = 2;
+}
+
+message CreatePostRequest {
+	string content = 1;
+	int32 userId = 2;
+}
+
+message CreatePostResponse {
+	Post post = 1;
+}
+
+message GetAllPostsRequest {
+	PaginatedQuery query = 1;
+}
+
+message GetAllPostsResponse {
+	repeated Post posts = 1;
+	Meta meta = 2;
 }

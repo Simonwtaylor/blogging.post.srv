@@ -6,9 +6,12 @@ import (
 	log "github.com/micro/go-micro/v2/logger"
 
 	post "post/proto/post"
+	"post/repository"
 )
 
-type Post struct{}
+type Post struct {
+	repo *repository.PostRepository
+}
 
 // Call is a single request handler called via client.Call or the generated client code
 func (e *Post) Call(ctx context.Context, req *post.Request, rsp *post.Response) error {
@@ -17,32 +20,49 @@ func (e *Post) Call(ctx context.Context, req *post.Request, rsp *post.Response) 
 	return nil
 }
 
-// Stream is a server side stream handler called via client.Stream or the generated client code
-func (e *Post) Stream(ctx context.Context, req *post.StreamingRequest, stream post.Post_StreamStream) error {
-	log.Infof("Received Post.Stream request with count: %d", req.Count)
-
-	for i := 0; i < int(req.Count); i++ {
-		log.Infof("Responding: %d", i)
-		if err := stream.Send(&post.StreamingResponse{
-			Count: int64(i),
-		}); err != nil {
-			return err
-		}
+func (e *Post) CreateUser(ctx context.Context, req *post.CreateUserRequest, rsp *post.CreateUserResponse) error {
+	log.Info("Received Post.CreateUser request")
+	// e.repo.CreatePost(req.)
+	rsp.User = &post.User{
+		Active: true,
 	}
-
 	return nil
 }
 
-// PingPong is a bidirectional stream handler called via client.Stream or the generated client code
-func (e *Post) PingPong(ctx context.Context, stream post.Post_PingPongStream) error {
-	for {
-		req, err := stream.Recv()
-		if err != nil {
-			return err
-		}
-		log.Infof("Got ping %v", req.Stroke)
-		if err := stream.Send(&post.Pong{Stroke: req.Stroke}); err != nil {
-			return err
-		}
+func (e *Post) CreatePost(ctx context.Context, req *post.CreatePostRequest, rsp *post.CreatePostResponse) error {
+	log.Info("Received Post.CreatePost request")
+	rsp.Post = &post.Post{
+		Content: "",
 	}
+	return nil
+}
+
+func (e *Post) GetAllUsers(ctx context.Context, req *post.GetAllUsersRequest, rsp *post.GetAllUsersResponse) error {
+	log.Info("Received Post.GetAllUsers request")
+	rsp.Meta = &post.Meta{
+		Cursor:     1,
+		TotalItems: 12,
+	}
+
+	rsp.Users = []*post.User{
+		&post.User{
+			Email: "asdasda",
+		},
+	}
+	return nil
+}
+
+func (e *Post) GetAllPosts(ctx context.Context, req *post.GetAllPostsRequest, rsp *post.GetAllPostsResponse) error {
+	log.Info("Received Post.GetAllPosts request")
+	rsp.Meta = &post.Meta{
+		Cursor:     1,
+		TotalItems: 12,
+	}
+
+	rsp.Posts = []*post.Post{
+		&post.Post{
+			Content: "asdasda",
+		},
+	}
+	return nil
 }
