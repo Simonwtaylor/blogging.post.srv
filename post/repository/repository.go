@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/biezhi/gorm-paginator/pagination"
 	"github.com/jinzhu/gorm"
 
 	"post/entities"
@@ -19,6 +20,21 @@ type Repository interface {
 
 type PostRepository struct {
 	db *gorm.DB
+}
+
+type Meta struct {
+	Cursor     int
+	TotalItems int
+}
+
+type PostQuery struct {
+	Meta *Meta
+	Data []*entities.Post
+}
+
+type UserQuery struct {
+	Meta *Meta
+	Data []*entities.User
 }
 
 func (r *PostRepository) CreateUser(user post.UserInput) (*entities.User, error) {
@@ -61,10 +77,40 @@ func (r *PostRepository) CreatePost(post post.CreatePostRequest) (*entities.Post
 	return &newPost, nil
 }
 
-func (r *PostRepository) GetAllUsers(query post.PaginatedQuery) ([]entities.User, error) {
-	return []entities.User{}, nil
+func (r *PostRepository) GetAllUsers(query post.PaginatedQuery) (*UserQuery, error) {
+	var users []*entities.User
+	db := r.db.Find(&users)
+	count := len(users)
+	pagination.Paging(&pagination.Param{
+		DB:    db,
+		Page:  int(query.Cursor),
+		Limit: int(query.PageSize),
+	}, &users)
+
+	return &UserQuery{
+		Data: users,
+		Meta: &Meta{
+			Cursor:     int(query.Cursor),
+			TotalItems: count,
+		},
+	}, nil
 }
 
-func (r *PostRepository) GetAllPosts(query post.PaginatedQuery) ([]entities.Post, error) {
-	return []entities.Post{}, nil
+func (r *PostRepository) GetAllPosts(query post.PaginatedQuery) (*PostQuery, error) {
+	var posts []*entities.Post
+	db := r.db.Preload("User").Find(&posts)
+	count := len(posts)
+	pagination.Paging(&pagination.Param{
+		DB:    db,
+		Page:  int(query.Cursor),
+		Limit: int(query.PageSize),
+	}, &posts)
+
+	return &PostQuery{
+		Data: posts,
+		Meta: &Meta{
+			Cursor:     int(query.Cursor),
+			TotalItems: count,
+		},
+	}, nil
 }
